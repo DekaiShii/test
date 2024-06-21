@@ -88,7 +88,14 @@ class httpHandler(http.server.SimpleHTTPRequestHandler):
 
    def do_POST(self):
       # local variables
+      """
+      修正前
       type    = "text/html"      # default Content-Type
+      """
+
+      # 修正後　Linebotでresponseを受け取るため
+      type    = "application/json" # default Content-Type
+
       message = "***failed***\n" # string
       form    = cgi.FieldStorage(
          fp=self.rfile,
@@ -121,7 +128,6 @@ class httpHandler(http.server.SimpleHTTPRequestHandler):
       # return the message (STRING) to the browser
       self.wfile.write(bytes(message, "utf8"))
 
-
    # LSFORM = LiSt FORM key,value(s) as HTML TABLE
    def lsform(self, form):
       msg = ""    # return string
@@ -166,55 +172,6 @@ class httpHandler(http.server.SimpleHTTPRequestHandler):
 
       return -1
 
-           # set the HTTP "Content-Type" header field to type
-      self._set_headers(type)
-      # return the message (STRING) to the browser
-      self.wfile.write(bytes(message, "utf8"))
-
-
-   # LSFORM = LiSt FORM key,value(s) as HTML TABLE
-   def lsform(self, form):
-      msg = ""    # return string
-      msg = msg + "<p>list up form values\n"
-      msg = msg + "<table border=0 frame=void cellspacing=30>\n"
-
-      # check all FORM key,value and create each table row
-      keys = sorted(form.keys())
-      for key in keys:
-         val = form[key].value
-         msg = msg + "<tr><td>{}<td>{}</tr>\n".format(key,val)
-
-      msg = msg + "</table>\n"
-      return msg
-
-
-   # UPLOAD: uploaded data is written to UPLOADED_FILE(= /home/admin/htdocs/file.uploaded)
-   def upload(self, form):
-      count = 0
-      with open(UPLOADED_FILE, mode="wb") as fp:
-         count = fp.write(form["file"].file.read())
-      # exercise: AWS Rekognition extension
-      import rekognition
-      data = rekognition.detectLabels(UPLOADED_FILE)
-      return json.dumps(data, ensure_ascii=False)
-      #return "uploaded: {} bytes written\n".format(count)
-
-   # 画像からじゃんけんの手を認識する
-   def jibun(self,rekognition):
-      rekognition_dict = json.loads(rekognition)
-      print(rekognition_dict)
-
-
-      #  print(message_dict[0])
-      for label in rekognition_dict:
-           if label['Name']  == 'Rock' and label['Confidence'] >= 85:
-                return 0
-           elif label['Name']  == 'Scissors' and label['Confidence'] >= 85:
-                return 1
-           elif label['Name']  == 'Paper' and label['Confidence'] >= 85:
-                return 2
-
-      return -1
    # カスタムラベルで分析してじゃんけんをする
    def custom_label_jibun(self,rekognition):
       # print(rekognition)
@@ -229,7 +186,7 @@ class httpHandler(http.server.SimpleHTTPRequestHandler):
       elif name == 'paa':
            return 2
 
-   #相手の手をランダムで生成
+  #相手の手をランダムで生成
    def aite(self):
            return random.randint(0,2)
 
@@ -330,4 +287,3 @@ if __name__ == "__main__":
 
       # run the www server forever (infinite loop)
       httpd.serve_forever()
-
